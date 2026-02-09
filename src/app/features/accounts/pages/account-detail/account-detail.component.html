@@ -1,0 +1,58 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Loading State -->
+  <app-loading-spinner *ngIf="loadingState.isLoading()" message="Loading account..."></app-loading-spinner>
+
+  <!-- Error State -->
+  <app-error-state
+    *ngIf="!loadingState.isLoading() && loadingState.error()"
+    [message]="loadingState.error()!"
+    (retry)="onRetry()">
+  </app-error-state>
+
+  <!-- Account Detail -->
+  <div *ngIf="!loadingState.isLoading() && !loadingState.error() && account()">
+    <!-- Back Button -->
+    <button
+      (click)="goBack()"
+      class="mb-4 text-blue-600 hover:text-blue-800 flex items-center">
+      <span class="mr-2">←</span>
+      Back to Accounts
+    </button>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <button
+          *ngFor="let tab of tabs; trackBy: trackByTabId"
+          (click)="selectTab(tab.id)"
+          [attr.aria-selected]="activeTab() === tab.id"
+          [class.border-blue-500]="activeTab() === tab.id"
+          [class.text-blue-600]="activeTab() === tab.id"
+          [class.border-transparent]="activeTab() !== tab.id"
+          [class.text-gray-500]="activeTab() !== tab.id"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300">
+          {{ tab.label }}
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Summary Tab -->
+      <app-account-summary
+        *ngIf="activeTab() === 'summary'"
+        [account]="account()!">
+      </app-account-summary>
+
+      <!-- Transactions Tab -->
+      <div *ngIf="activeTab() === 'transactions'" class="bg-white rounded-lg shadow-md p-6">
+        <router-outlet></router-outlet>
+      </div>
+
+      <!-- Invoices Tab -->
+      <div *ngIf="activeTab() === 'invoices'" class="bg-white rounded-lg shadow-md p-6">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>

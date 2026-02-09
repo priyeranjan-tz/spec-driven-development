@@ -1,0 +1,42 @@
+<div class="pdf-download-container">
+  <button
+    type="button"
+    (click)="downloadPdf()"
+    [disabled]="downloading()"
+    [attr.aria-busy]="downloading()"
+    [attr.aria-label]="downloading() ? 'Generating PDF, please wait' : 'Download invoice as PDF'"
+    data-testid="download-pdf-button"
+    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+    @if (downloading()) {
+      <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Generating...</span>
+    } @else {
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <span>Download PDF</span>
+    }
+  </button>
+
+  @if (error()) {
+    <div 
+      class="mt-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm" 
+      data-testid="pdf-error-message"
+      role="alert"
+      aria-live="assertive">
+      <div class="flex items-center justify-between">
+        <span>{{ error() }}</span>
+        <button
+          type="button"
+          (click)="clearError()"
+          aria-label="Dismiss error message"
+          class="ml-2 text-red-700 hover:text-red-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+    </div>
+  }
+</div>

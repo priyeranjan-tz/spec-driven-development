@@ -1,0 +1,81 @@
+<div class="transaction-list-container">
+  <!-- Read-Only Indicator -->
+  <div class="read-only-banner bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="status" aria-live="polite">
+    <p class="font-medium">
+      <span class="inline-block mr-2" aria-hidden="true">ℹ️</span>
+      <strong>View Only:</strong> Transaction records are read-only and cannot be edited or deleted.
+    </p>
+  </div>
+
+  <!-- Invoice Filter Indicator -->
+  @if (linkedInvoiceId()) {
+    <div class="invoice-filter-banner bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" 
+         role="status"
+         aria-live="polite"
+         data-testid="invoice-filter-indicator">
+      <p class="font-medium">
+        <span class="inline-block mr-2" aria-hidden="true">🔍</span>
+        <strong>Filtered by Invoice:</strong> Showing transactions for invoice <span class="font-mono">{{ linkedInvoiceId() }}</span>
+      </p>
+    </div>
+  }
+
+  <!-- Filters Section -->
+  <app-transaction-filters
+    [startDate]="startDate()"
+    [endDate]="endDate()"
+    [sourceType]="sourceType()"
+    (filtersChange)="onFiltersChange($event)"
+  ></app-transaction-filters>
+
+  <!-- Loading State -->
+  <app-loading-spinner *ngIf="loadingState.isLoading()"></app-loading-spinner>
+
+  <!-- Error State -->
+  <app-error-state
+    *ngIf="loadingState.error() && !loadingState.isLoading()"
+    [message]="loadingState.error()!"
+    (retry)="onRetry()"
+  ></app-error-state>
+
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="!loadingState.isLoading() && !loadingState.error() && ledgerEntries().length === 0"
+    message="No transactions found"
+    icon="receipt"
+  ></app-empty-state>
+
+  <!-- Ledger Entries Table -->
+  <div *ngIf="!loadingState.isLoading() && !loadingState.error() && ledgerEntries().length > 0" class="ledger-table-container">
+    <table class="ledger-table" role="table" aria-label="Transaction ledger entries">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Source</th>
+          <th scope="col">Reference</th>
+          <th scope="col" class="text-right">Debit</th>
+          <th scope="col" class="text-right">Credit</th>
+          <th scope="col" class="text-right">Balance</th>
+          <th scope="col">Invoice</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr app-transaction-row
+          *ngFor="let entry of ledgerEntries(); trackBy: trackByLedgerEntryId"
+          [ledgerEntry]="entry"
+          [accountId]="accountId()">
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <app-pagination
+    *ngIf="!loadingState.isLoading() && !loadingState.error() && pagination.totalPages() > 1"
+    [currentPage]="pagination.currentPage()"
+    [totalPages]="pagination.totalPages()"
+    [totalItems]="pagination.totalItems()"
+    [pageSize]="pagination.pageSize()"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+</div>

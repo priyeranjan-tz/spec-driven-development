@@ -1,0 +1,55 @@
+<div class="bg-white rounded-lg shadow-md p-6">
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ account.name }}</h2>
+      <p class="text-gray-600">{{ getTypeLabel(account.type) }}</p>
+    </div>
+    <span 
+      class="px-3 py-1 rounded text-sm font-medium"
+      [ngClass]="getStatusColor(account.status)">
+      {{ account.status }}
+    </span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Current Balance -->
+    <div class="border-l-4 border-blue-500 pl-4">
+      <div class="text-sm text-gray-600 mb-1">Current Balance</div>
+      <div class="text-3xl font-bold text-gray-900">
+        {{ account.currentBalance | currencyFormat }}
+      </div>
+    </div>
+
+    <!-- Last Invoice -->
+    <div class="border-l-4 border-purple-500 pl-4">
+      <div class="text-sm text-gray-600 mb-1">Last Invoice Date</div>
+      <div class="text-xl font-semibold text-gray-900">
+        {{ account.lastInvoiceDate ? (account.lastInvoiceDate | dateFormat:'long') : 'No invoices yet' }}
+      </div>
+    </div>
+
+    <!-- Account ID -->
+    <div>
+      <div class="text-sm text-gray-600 mb-1">Account ID</div>
+      <div class="text-sm font-mono text-gray-900">{{ account.id }}</div>
+    </div>
+
+    <!-- Tenant ID -->
+    <div>
+      <div class="text-sm text-gray-600 mb-1">Tenant ID</div>
+      <div class="text-sm font-mono text-gray-900">{{ account.tenantId }}</div>
+    </div>
+
+    <!-- Created At -->
+    <div>
+      <div class="text-sm text-gray-600 mb-1">Created</div>
+      <div class="text-sm text-gray-900">{{ account.createdAt | dateFormat:'long' }}</div>
+    </div>
+
+    <!-- Updated At -->
+    <div>
+      <div class="text-sm text-gray-600 mb-1">Last Updated</div>
+      <div class="text-sm text-gray-900">{{ account.updatedAt | dateFormat:'long' }}</div>
+    </div>
+  </div>
+</div>

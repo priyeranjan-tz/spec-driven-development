@@ -1,0 +1,141 @@
+<div class="invoice-list-container">
+  <!-- Page Heading -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Invoices</h1>
+    <p class="text-gray-600">Manage invoice records and download PDFs</p>
+  </div>
+
+  <!-- Filters Section -->
+  <section class="filters-section mb-4" aria-label="Filter invoices">
+    <div class="flex flex-wrap gap-4 items-end">
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">
+          Status
+        </label>
+        <select
+          id="status-filter"
+          data-testid="filter-status"
+          class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+          [value]="statusFilter() || ''"
+          (change)="onStatusFilterChange($any($event.target).value)"
+        >
+          <option *ngFor="let status of statuses; trackBy: trackByFilterValue" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Frequency Filter -->
+      <div class="filter-group">
+        <label for="frequency-filter" class="block text-sm font-medium text-gray-700 mb-1">
+          Frequency
+        </label>
+        <select
+          id="frequency-filter"
+          data-testid="filter-frequency"
+          class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+          [value]="frequencyFilter() || ''"
+          (change)="onFrequencyFilterChange($any($event.target).value)"
+        >
+          <option *ngFor="let freq of frequencies; trackBy: trackByFilterValue" [value]="freq.value">
+            {{ freq.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Clear Filters Button -->
+      <div class="filter-actions">
+        <button
+          type="button"
+          class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          (click)="clearFilters()"
+          [disabled]="!hasActiveFilters()"
+          aria-label="Clear all active filters"
+        >
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sorting Header -->
+  <section class="sort-header mb-4 flex gap-4" role="group" aria-label="Sort invoices">
+    <button
+      type="button"
+      data-testid="sort-invoice-number"
+      class="sort-button focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      [attr.aria-sort]="getSortAriaValue('invoiceNumber')"
+      [attr.aria-label]="'Sort by invoice number ' + (getSortAriaValue('invoiceNumber') === 'ascending' ? 'ascending' : getSortAriaValue('invoiceNumber') === 'descending' ? 'descending' : '')"
+      (click)="onSort('invoiceNumber')"
+    >
+      Invoice # <span [class]="getSortIconClass('invoiceNumber')" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      data-testid="sort-due-date"
+      class="sort-button focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      [attr.aria-sort]="getSortAriaValue('dueDate')"
+      [attr.aria-label]="'Sort by due date ' + (getSortAriaValue('dueDate') === 'ascending' ? 'ascending' : getSortAriaValue('dueDate') === 'descending' ? 'descending' : '')"
+      (click)="onSort('dueDate')"
+    >
+      Due Date <span [class]="getSortIconClass('dueDate')" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      data-testid="sort-total"
+      class="sort-button focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      [attr.aria-sort]="getSortAriaValue('totalCents')"
+      [attr.aria-label]="'Sort by total ' + (getSortAriaValue('totalCents') === 'ascending' ? 'ascending' : getSortAriaValue('totalCents') === 'descending' ? 'descending' : '')"
+      (click)="onSort('totalCents')"
+    >
+      Total <span [class]="getSortIconClass('totalCents')" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      data-testid="sort-status"
+      class="sort-button focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      [attr.aria-sort]="getSortAriaValue('status')"
+      [attr.aria-label]="'Sort by status ' + (getSortAriaValue('status') === 'ascending' ? 'ascending' : getSortAriaValue('status') === 'descending' ? 'descending' : '')"
+      (click)="onSort('status')"
+    >
+      Status <span [class]="getSortIconClass('status')" aria-hidden="true"></span>
+    </button>
+  </section>
+
+  <!-- Loading State -->
+  <app-loading-spinner *ngIf="loadingState.isLoading()"></app-loading-spinner>
+
+  <!-- Error State -->
+  <app-error-state
+    *ngIf="loadingState.error() && !loadingState.isLoading()"
+    [message]="loadingState.error()!"
+    (retry)="onRetry()"
+  ></app-error-state>
+
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="!loadingState.isLoading() && !loadingState.error() && invoices().length === 0"
+    message="No invoices found"
+    icon="receipt"
+  ></app-empty-state>
+
+  <!-- Invoice Cards Grid -->
+  <div *ngIf="!loadingState.isLoading() && !loadingState.error() && invoices().length > 0" class="invoices-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <app-invoice-card
+      *ngFor="let invoice of invoices(); trackBy: trackByInvoiceId"
+      [invoice]="invoice"
+      [accountId]="accountId()"
+    ></app-invoice-card>
+  </div>
+
+  <!-- Pagination -->
+  <app-pagination
+    *ngIf="!loadingState.isLoading() && !loadingState.error() && pagination.totalPages() > 1"
+    [currentPage]="pagination.currentPage()"
+    [totalPages]="pagination.totalPages()"
+    [totalItems]="pagination.totalItems()"
+    [pageSize]="pagination.pageSize()"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+</div>

@@ -1,0 +1,193 @@
+<div class="invoice-detail-container p-6">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <app-loading-spinner />
+  }
+
+  <!-- Error State -->
+  @else if (error()) {
+    <app-error-state 
+      [message]="error()!" 
+      (retry)="retry()" />
+  }
+
+  <!-- Invoice Content -->
+  @else if (invoice(); as invoiceData) {
+    <div class="max-w-4xl mx-auto">
+      <!-- Back Button -->
+      <button
+        type="button"
+        (click)="goBack()"
+        class="mb-4 text-blue-600 hover:text-blue-800 flex items-center gap-2">
+        ← Back
+      </button>
+
+      <!-- Success Message -->
+      @if (successMessage()) {
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" data-testid="success-message">
+          {{ successMessage() }}
+        </div>
+      }
+
+      <!-- Error Message -->
+      @if (saveError()) {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" data-testid="error-message">
+          {{ saveError() }}
+        </div>
+      }
+
+      <!-- Invoice Header -->
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h1 class="text-2xl font-bold mb-2" data-testid="invoice-number">
+              {{ invoiceData.invoiceNumber }}
+            </h1>
+            <span 
+              [class]="getStatusClass(invoiceData.status)"
+              class="inline-block px-3 py-1 rounded-full text-sm font-medium">
+              {{ invoiceData.status }}
+            </span>
+          </div>
+          <div class="flex gap-2 items-start">
+            @if (!isEditMode()) {
+              <button
+                type="button"
+                (click)="enterEditMode()"
+                data-testid="edit-metadata-button"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                Edit
+              </button>
+            }
+            <app-pdf-download-button
+              [tenantId]="tenantService.getCurrentTenantId()"
+              [accountId]="invoice()?.accountId || ''"
+              [invoiceId]="invoice()?.id || ''"
+              [invoiceNumber]="invoice()?.invoiceNumber || ''"
+              [issuedAt]="invoice()?.issuedAt || ''" />
+            <button
+              type="button"
+              (click)="viewRelatedLedgerEntries()"
+              data-testid="view-ledger-entries-link"
+              class="text-blue-600 hover:text-blue-800 text-sm self-center">
+              View Related Ledger Entries →
+            </button>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <span class="text-gray-600 text-sm">Billing Period</span>
+            <p class="font-medium">
+              {{ invoiceData.billingPeriodStart | dateFormat }} - {{ invoiceData.billingPeriodEnd | dateFormat }}
+            </p>
+          </div>
+          <div>
+            <span class="text-gray-600 text-sm">Frequency</span>
+            <p class="font-medium">{{ invoiceData.frequency }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          @if (invoiceData.issuedAt) {
+            <div>
+              <span class="text-gray-600 text-sm">Issued Date</span>
+              <p class="font-medium">{{ invoiceData.issuedAt | dateFormat }}</p>
+            </div>
+          }
+          <div>
+            <span class="text-gray-600 text-sm">Due Date</span>
+            <p class="font-medium">{{ invoiceData.dueDate | dateFormat }}</p>
+          </div>
+          @if (invoiceData.paidAt) {
+            <div>
+              <span class="text-gray-600 text-sm">Paid Date</span>
+              <p class="font-medium">{{ invoiceData.paidAt | dateFormat }}</p>
+            </div>
+          }
+          @if (invoiceData.updatedAt) {
+            <div>
+              <span class="text-gray-600 text-sm">Last Updated</span>
+              <p class="font-medium" data-testid="updated-at">{{ invoiceData.updatedAt | dateFormat }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Editable Metadata Section -->
+      @if (isEditMode()) {
+        <div class="bg-white rounded-lg shadow p-6 mb-6" data-testid="editable-fields-section">
+          <app-invoice-metadata-editor
+            [metadata]="metadata()"
+            [saving]="isSaving()"
+            (save)="saveMetadata($event)"
+            (cancel)="cancelEdit()" />
+        </div>
+      } @else {
+        <!-- Read-only Metadata Display -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-bold mb-4">Invoice Information</h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-gray-600 text-sm">Notes</span>
+              <p class="font-medium">{{ metadata().notes || '-' }}</p>
+            </div>
+            <div>
+              <span class="text-gray-600 text-sm">Internal Reference</span>
+              <p class="font-medium">{{ metadata().internalReference || '-' }}</p>
+            </div>
+            <div>
+              <span class="text-gray-600 text-sm">Billing Contact</span>
+              <p class="font-medium">{{ metadata().billingContact || '-' }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Line Items (Protected) -->
+      <div class="bg-white rounded-lg shadow p-6 mb-6" data-testid="protected-fields-section">
+        <div class="flex items-center gap-2 mb-4">
+          <h2 class="text-xl font-bold">Line Items</h2>
+          <span class="text-gray-500 text-sm flex items-center gap-1" title="Financial data is protected and cannot be edited" data-testid="financial-protection-tooltip">
+            🔒 Protected
+          </span>
+        </div>
+        <app-invoice-line-items [lineItems]="invoiceData.lineItems" data-testid="line-items-table" />
+      </div>
+
+      <!-- Financial Summary (Protected) -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <h2 class="text-xl font-bold">Summary</h2>
+          <span class="text-gray-500 text-sm flex items-center gap-1" title="Financial data is protected and cannot be edited">
+            🔒 Protected
+          </span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 flex items-center gap-2">
+              Subtotal
+              <span class="text-xs text-gray-400" data-testid="subtotal-lock-icon">🔒</span>
+            </span>
+            <span data-testid="subtotal-display">{{ invoiceData.subtotalCents | currencyFormat }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 flex items-center gap-2">
+              Tax
+              <span class="text-xs text-gray-400" data-testid="tax-lock-icon">🔒</span>
+            </span>
+            <span data-testid="tax-display">{{ invoiceData.taxCents | currencyFormat }}</span>
+          </div>
+          <div class="flex justify-between border-t pt-2 font-bold text-lg items-center">
+            <span class="flex items-center gap-2">
+              Total
+              <span class="text-xs text-gray-400" data-testid="total-lock-icon">🔒</span>
+            </span>
+            <span data-testid="total-display">{{ invoiceData.totalCents | currencyFormat }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

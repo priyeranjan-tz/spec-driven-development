@@ -1,0 +1,26 @@
+# Build outputs
+dist/
+build/
+out-tsc/
+.angular/
+
+# Dependencies
+node_modules/
+
+# Coverage reports
+coverage/
+
+# Test results
+test-results/
+playwright-report/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env*
+
+# Cache
+.cache/

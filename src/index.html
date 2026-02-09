@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Accounting & Invoicing System</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Manage customer accounts, invoices, and financial transactions">
+  
+  <!-- Content Security Policy - Defense against XSS, injection attacks, and other code execution -->
+  <!-- 
+    Strict CSP Configuration:
+    - default-src 'self': Only load resources from same origin by default
+    - script-src 'self': Only execute scripts from same origin (no inline scripts)
+    - style-src 'self' 'unsafe-inline': Allow same-origin styles and inline styles (required by Angular/Tailwind)
+    - img-src 'self' data: https:: Allow images from same origin, data URIs, and HTTPS sources
+    - font-src 'self' data:: Allow fonts from same origin and data URIs
+    - connect-src 'self': Only allow AJAX/fetch to same origin APIs
+    - frame-ancestors 'none': Prevent embedding in iframes (clickjacking protection)
+    - base-uri 'self': Restrict base tag URLs to same origin
+    - form-action 'self': Only allow form submissions to same origin
+    - upgrade-insecure-requests: Automatically upgrade HTTP to HTTPS
+  -->
+  <meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: https:;
+  font-src 'self' data:;
+  connect-src 'self' http://localhost:5046 https://localhost:5046;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self';
+  upgrade-insecure-requests;
+">
+  
+  <!-- Additional Security Headers -->
+  <!-- X-Content-Type-Options: Prevent MIME type sniffing -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  
+  <!-- Referrer Policy: Control referrer information leakage -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

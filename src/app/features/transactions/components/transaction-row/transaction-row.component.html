@@ -1,0 +1,35 @@
+<tr class="transaction-row" [attr.data-transaction-id]="ledgerEntry.id">
+  <td class="date-cell">
+    <a
+      [routerLink]="['/accounts', accountId, 'transactions', ledgerEntry.id]"
+      class="transaction-link"
+    >
+      {{ ledgerEntry.postingDate | dateFormat: 'short' }}
+    </a>
+  </td>
+  <td class="source-cell">
+    <span class="source-type-badge" [attr.data-source-type]="ledgerEntry.sourceType">
+      {{ ledgerEntry.sourceType }}
+    </span>
+  </td>
+  <td class="reference-cell">{{ ledgerEntry.sourceReferenceId }}</td>
+  <td class="amount-cell text-right" [class.amount-debit]="ledgerEntry.debitAmount > 0">
+    {{ ledgerEntry.debitAmount > 0 ? (ledgerEntry.debitAmount | currencyFormat) : '-' }}
+  </td>
+  <td class="amount-cell text-right" [class.amount-credit]="ledgerEntry.creditAmount > 0">
+    {{ ledgerEntry.creditAmount > 0 ? (ledgerEntry.creditAmount | currencyFormat) : '-' }}
+  </td>
+  <td class="balance-cell text-right">
+    <app-running-balance-display [balance]="ledgerEntry.runningBalance"></app-running-balance-display>
+  </td>
+  <td class="invoice-cell">
+    <a
+      *ngIf="ledgerEntry.linkedInvoiceId"
+      [routerLink]="['/invoices', ledgerEntry.linkedInvoiceId]"
+      class="invoice-link"
+    >
+      {{ ledgerEntry.linkedInvoiceId }}
+    </a>
+    <span *ngIf="!ledgerEntry.linkedInvoiceId">-</span>
+  </td>
+</tr>

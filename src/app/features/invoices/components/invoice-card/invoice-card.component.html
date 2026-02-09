@@ -1,0 +1,63 @@
+<div
+  class="invoice-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+  [attr.data-testid]="'invoice-card'"
+  [attr.data-invoice-id]="invoice.id"
+>
+  <div class="invoice-card-header mb-4">
+    <div class="flex justify-between items-start">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">
+          {{ invoice.invoiceNumber }}
+        </h3>
+        <p class="text-sm text-gray-500">
+          {{ invoice.billingPeriodStart | dateFormat: 'short' }} - {{ invoice.billingPeriodEnd | dateFormat: 'short' }}
+        </p>
+      </div>
+      <span
+        class="status-badge px-3 py-1 rounded-full text-sm font-medium"
+        [ngClass]="getStatusClass()"
+      >
+        {{ invoice.status }}
+      </span>
+    </div>
+  </div>
+
+  <div class="invoice-card-body mb-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <p class="text-xs text-gray-500 mb-1">Frequency</p>
+        <p class="text-sm font-medium text-gray-900">{{ getFrequencyLabel() }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 mb-1">Due Date</p>
+        <p class="text-sm font-medium text-gray-900">
+          {{ invoice.dueDate | dateFormat: 'short' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-gray-200">
+      <div class="flex justify-between items-baseline">
+        <span class="text-sm text-gray-500">Subtotal:</span>
+        <span class="text-sm text-gray-900">{{ invoice.subtotalCents | currencyFormat }}</span>
+      </div>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-sm text-gray-500">Tax:</span>
+        <span class="text-sm text-gray-900">{{ invoice.taxCents | currencyFormat }}</span>
+      </div>
+      <div class="flex justify-between items-baseline mt-2 pt-2 border-t border-gray-200">
+        <span class="text-base font-semibold text-gray-900">Total:</span>
+        <span class="text-xl font-bold text-blue-600">{{ invoice.totalCents | currencyFormat }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="invoice-card-footer">
+    <p class="text-xs text-gray-500 mb-2" *ngIf="invoice.issuedAt">
+      Issued: {{ invoice.issuedAt | dateFormat: 'date' }}
+    </p>
+    <p class="text-xs text-gray-500 mb-2" *ngIf="invoice.paidAt">
+      Paid: {{ invoice.paidAt | dateFormat: 'date' }}
+    </p>
+  </div>
+</div>

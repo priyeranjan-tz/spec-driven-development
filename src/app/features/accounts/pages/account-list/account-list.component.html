@@ -1,0 +1,50 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Accounts</h1>
+    <p class="text-gray-600">Manage and view all customer accounts</p>
+  </div>
+
+  <!-- Filter Bar -->
+  <app-filter-bar
+    class="mb-6"
+    (apply)="onApplyFilters()"
+    (clear)="onClearFilters()">
+  </app-filter-bar>
+
+  <!-- Loading State -->
+  <app-loading-spinner *ngIf="loadingState.isLoading()" message="Loading accounts..."></app-loading-spinner>
+
+  <!-- Error State -->
+  <app-error-state
+    *ngIf="!loadingState.isLoading() && loadingState.error()"
+    [message]="loadingState.error()!"
+    (retry)="onRetry()">
+  </app-error-state>
+
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="!loadingState.isLoading() && !loadingState.error() && accounts().length === 0"
+    title="No accounts found"
+    message="There are no accounts matching your criteria.">
+  </app-empty-state>
+
+  <!-- Accounts Grid -->
+  <div *ngIf="!loadingState.isLoading() && !loadingState.error() && accounts().length > 0">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <app-account-card
+        *ngFor="let account of accounts(); trackBy: trackByAccountId"
+        [account]="account"
+        (accountClick)="onAccountClick($event)">
+      </app-account-card>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination
+      [currentPage]="pagination.currentPage()"
+      [totalPages]="pagination.totalPages()"
+      [totalItems]="pagination.totalItems()"
+      [pageSize]="pagination.pageSize()"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+</div>

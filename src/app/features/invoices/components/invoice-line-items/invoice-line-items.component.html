@@ -1,0 +1,42 @@
+<div class="overflow-x-auto">
+  @if (lineItems.length === 0) {
+    <p class="text-gray-500 text-center py-4">No line items</p>
+  } @else {
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Ride ID
+          </th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Date
+          </th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Description
+          </th>
+          <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Fare
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        @for (item of lineItems; track trackByLineItemId($index, item)) {
+          <tr data-testid="line-item-row">
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              {{ item.rideId }}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              {{ item.rideDate | dateFormat }}
+            </td>
+            <td class="px-4 py-3 text-sm">
+              {{ item.description }}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
+              {{ item.fareCents | currencyFormat }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

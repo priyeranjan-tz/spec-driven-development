@@ -1,0 +1,113 @@
+<div class="metadata-editor p-4 bg-gray-50 rounded-lg">
+  <h2 class="text-lg font-semibold mb-4">Edit Invoice Metadata</h2>
+
+  <form [formGroup]="metadataForm" class="space-y-4">
+    <!-- Notes Field -->
+    <div>
+      <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+        Notes (Optional)
+      </label>
+      <textarea
+        id="notes"
+        formControlName="notes"
+        data-testid="notes-input"
+        rows="4"
+        [attr.aria-invalid]="notesControl.invalid && notesControl.touched"
+        [attr.aria-describedby]="notesControl.invalid && notesControl.touched ? 'notes-error notes-char-count' : 'notes-char-count'"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="notesControl.invalid && notesControl.touched"
+        placeholder="Add any notes or comments about this invoice"></textarea>
+      
+      <div class="flex justify-between items-center mt-1">
+        <span 
+          *ngIf="notesControl.invalid && notesControl.touched" 
+          id="notes-error"
+          class="text-red-600 text-sm"
+          role="alert"
+          data-testid="notes-error">
+          Maximum {{ NOTES_MAX_LENGTH }} characters
+        </span>
+        <span 
+          id="notes-char-count"
+          class="text-gray-500 text-sm ml-auto"
+          aria-live="polite"
+          data-testid="notes-char-count">
+          {{ notesCharCount }} / {{ NOTES_MAX_LENGTH }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Internal Reference Field -->
+    <div>
+      <label for="internalReference" class="block text-sm font-medium text-gray-700 mb-1">
+        Internal Reference (Optional)
+      </label>
+      <input
+        type="text"
+        id="internalReference"
+        formControlName="internalReference"
+        data-testid="internal-reference-input"
+        [attr.aria-invalid]="internalReferenceControl.invalid && internalReferenceControl.touched"
+        [attr.aria-describedby]="internalReferenceControl.invalid && internalReferenceControl.touched ? 'internal-reference-error' : null"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="internalReferenceControl.invalid && internalReferenceControl.touched"
+        placeholder="Enter internal reference code or tracking number" />
+      
+      <span 
+        *ngIf="internalReferenceControl.invalid && internalReferenceControl.touched" 
+        id="internal-reference-error"
+        class="text-red-600 text-sm block mt-1"
+        role="alert"
+        data-testid="internal-reference-error">
+        Maximum {{ INTERNAL_REF_MAX_LENGTH }} characters
+      </span>
+    </div>
+
+    <!-- Billing Contact Field -->
+    <div>
+      <label for="billingContact" class="block text-sm font-medium text-gray-700 mb-1">
+        Billing Contact Email (Optional)
+      </label>
+      <input
+        type="email"
+        id="billingContact"
+        formControlName="billingContact"
+        data-testid="billing-contact-input"
+        [attr.aria-invalid]="billingContactControl.invalid && billingContactControl.touched"
+        [attr.aria-describedby]="billingContactControl.invalid && billingContactControl.touched ? 'billing-contact-error' : null"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="billingContactControl.invalid && billingContactControl.touched"
+        placeholder="billing@example.com" />
+      
+      <span 
+        *ngIf="billingContactControl.invalid && billingContactControl.touched" 
+        id="billing-contact-error"
+        class="text-red-600 text-sm block mt-1"
+        role="alert"
+        data-testid="billing-contact-error">
+        Invalid email format
+      </span>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 pt-4">
+      <button
+        type="button"
+        (click)="onSave()"
+        [disabled]="metadataForm.invalid || saving"
+        [attr.aria-busy]="saving"
+        data-testid="save-metadata-button"
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+        {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+      <button
+        type="button"
+        (click)="onCancel()"
+        [disabled]="saving"
+        data-testid="cancel-metadata-button"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

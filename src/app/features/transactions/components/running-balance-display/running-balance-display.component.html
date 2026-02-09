@@ -1,0 +1,10 @@
+<span
+  class="running-balance"
+  [class.balance-negative]="isNegative"
+  [class.balance-positive]="isPositive"
+  [class.balance-zero]="isZero"
+  [attr.data-balance]="balance"
+>
+  <span *ngIf="isNegative" class="balance-sign">-</span>
+  {{ absoluteBalance | currencyFormat }}
+</span>

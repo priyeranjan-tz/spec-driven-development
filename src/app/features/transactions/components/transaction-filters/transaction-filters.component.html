@@ -1,0 +1,60 @@
+<section class="transaction-filters" aria-label="Filter transactions">
+  <div class="filters-row">
+    <!-- Start Date Filter -->
+    <div class="filter-group">
+      <label for="startDate" class="filter-label">Start Date</label>
+      <input
+        id="startDate"
+        type="date"
+        class="filter-input focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        [value]="localStartDate()"
+        (input)="onStartDateChange($any($event.target).value)"
+        [max]="localEndDate() || undefined"
+        aria-label="Filter transactions from this date"
+      />
+    </div>
+
+    <!-- End Date Filter -->
+    <div class="filter-group">
+      <label for="endDate" class="filter-label">End Date</label>
+      <input
+        id="endDate"
+        type="date"
+        class="filter-input focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        [value]="localEndDate()"
+        (input)="onEndDateChange($any($event.target).value)"
+        [min]="localStartDate() || undefined"
+        aria-label="Filter transactions until this date"
+      />
+    </div>
+
+    <!-- Source Type Filter -->
+    <div class="filter-group">
+      <label for="sourceType" class="filter-label">Source Type</label>
+      <select
+        id="sourceType"
+        class="filter-select focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        [value]="localSourceType()"
+        (change)="onSourceTypeChange($any($event.target).value)"
+        aria-label="Filter transactions by source type"
+      >
+        <option *ngFor="let type of sourceTypes; trackBy: trackBySourceTypeValue" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Clear Filters Button -->
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="clear-filters-button focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        (click)="clearFilters()"
+        [disabled]="!hasActiveFilters()"
+        aria-label="Clear all transaction filters"
+      >
+        Clear Filters
+      </button>
+    </div>
+  </div>
+</section>
