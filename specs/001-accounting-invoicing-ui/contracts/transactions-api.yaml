@@ -1,0 +1,305 @@
+openapi: 3.0.3
+info:
+  title: Transactions (Ledger Entries) API
+  description: API endpoints for retrieving and filtering ledger entries (transactions) for accounts
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://api-staging.example.com/v1
+    description: Staging server
+
+paths:
+  /tenants/{tenantId}/accounts/{accountId}/ledger-entries:
+    get:
+      summary: List ledger entries
+      description: Retrieve a paginated list of ledger entries for an account with optional filters
+      operationId: listLedgerEntries
+      tags:
+        - Transactions
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: startDate
+          in: query
+          required: false
+          description: Filter by posting date >= this date (ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          description: Filter by posting date <= this date (ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: sourceType
+          in: query
+          required: false
+          description: Filter by source type
+          schema:
+            type: string
+            enum: [ride, payment]
+        - name: minAmount
+          in: query
+          required: false
+          description: Filter by minimum amount (USD cents)
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxAmount
+          in: query
+          required: false
+          description: Filter by maximum amount (USD cents)
+          schema:
+            type: integer
+            minimum: 0
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerEntryListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tenants/{tenantId}/accounts/{accountId}/ledger-entries/{entryId}:
+    get:
+      summary: Get ledger entry details
+      description: Retrieve detailed information for a specific ledger entry
+      operationId: getLedgerEntry
+      tags:
+        - Transactions
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: entryId
+          in: path
+          required: true
+          description: Ledger Entry ID
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerEntry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LedgerEntry:
+      type: object
+      required:
+        - id
+        - accountId
+        - postingDate
+        - sourceType
+        - sourceReferenceId
+        - debitAmount
+        - creditAmount
+        - runningBalance
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Ledger entry ID
+        accountId:
+          type: string
+          format: uuid
+          description: Account ID
+        postingDate:
+          type: string
+          format: date-time
+          description: Posting timestamp (ISO 8601)
+        sourceType:
+          type: string
+          enum: [ride, payment]
+          description: Source type
+        sourceReferenceId:
+          type: string
+          description: Ride ID or Payment ID
+        debitAmount:
+          type: integer
+          minimum: 0
+          description: Debit amount in USD cents (charges)
+          example: 5000
+        creditAmount:
+          type: integer
+          minimum: 0
+          description: Credit amount in USD cents (payments)
+          example: 0
+        runningBalance:
+          type: integer
+          description: Running balance after this entry (USD cents)
+          example: 105000
+        linkedInvoiceId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Linked invoice ID (if applicable)
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional contextual data
+        createdAt:
+          type: string
+          format: date-time
+          description: Entry creation timestamp (ISO 8601)
+
+    LedgerEntryListResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+        - page
+        - pageSize
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LedgerEntry'
+        totalCount:
+          type: integer
+          description: Total number of ledger entries matching filters
+        page:
+          type: integer
+          description: Current page number (1-indexed)
+        pageSize:
+          type: integer
+          description: Items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+
+    ApiError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - errorCode
+        - timestamp
+        - correlationId
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+        message:
+          type: string
+          description: User-friendly error message
+        errorCode:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp (ISO 8601)
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Forbidden - user does not have permission to access this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Not found - requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

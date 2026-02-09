@@ -1,0 +1,499 @@
+openapi: 3.0.3
+info:
+  title: Invoices API
+  description: API endpoints for managing invoices, including listing, detail view, metadata editing, and PDF download
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://api-staging.example.com/v1
+    description: Staging server
+
+paths:
+  /tenants/{tenantId}/accounts/{accountId}/invoices:
+    get:
+      summary: List invoices
+      description: Retrieve a paginated list of invoices for an account with optional filters
+      operationId: listInvoices
+      tags:
+        - Invoices
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: status
+          in: query
+          required: false
+          description: Filter by invoice status
+          schema:
+            type: string
+            enum: [draft, issued, paid, overdue, cancelled]
+        - name: frequency
+          in: query
+          required: false
+          description: Filter by invoice frequency
+          schema:
+            type: string
+            enum: [per_ride, daily, weekly, monthly]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tenants/{tenantId}/accounts/{accountId}/invoices/{invoiceId}:
+    get:
+      summary: Get invoice details
+      description: Retrieve detailed information for a specific invoice including line items
+      operationId: getInvoice
+      tags:
+        - Invoices
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: invoiceId
+          in: path
+          required: true
+          description: Invoice ID
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tenants/{tenantId}/accounts/{accountId}/invoices/{invoiceId}/metadata:
+    put:
+      summary: Update invoice metadata
+      description: Update non-financial metadata fields for an invoice (notes, internal reference, billing contact)
+      operationId: updateInvoiceMetadata
+      tags:
+        - Invoices
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: invoiceId
+          in: path
+          required: true
+          description: Invoice ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceMetadataUpdate'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '400':
+          description: Bad request - validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Conflict - concurrent modification detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tenants/{tenantId}/accounts/{accountId}/invoices/{invoiceId}/pdf:
+    get:
+      summary: Download invoice PDF
+      description: Generate and download a PDF version of the invoice
+      operationId: downloadInvoicePdf
+      tags:
+        - Invoices
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          description: Tenant ID
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          required: true
+          description: Account ID
+          schema:
+            type: string
+            format: uuid
+        - name: invoiceId
+          in: path
+          required: true
+          description: Invoice ID
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: Filename for download
+              schema:
+                type: string
+                example: attachment; filename="invoice-INV-2024-001.pdf"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Invoice:
+      type: object
+      required:
+        - id
+        - accountId
+        - invoiceNumber
+        - billingPeriodStart
+        - billingPeriodEnd
+        - frequency
+        - lineItems
+        - subtotal
+        - paymentsApplied
+        - outstandingAmount
+        - status
+        - generatedBy
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Invoice ID
+        accountId:
+          type: string
+          format: uuid
+          description: Account ID
+        invoiceNumber:
+          type: string
+          pattern: '^INV-\d{4}-\d{3,}$'
+          description: Human-readable invoice number
+          example: "INV-2024-001"
+        billingPeriodStart:
+          type: string
+          format: date
+          description: Billing period start date (ISO 8601)
+        billingPeriodEnd:
+          type: string
+          format: date
+          description: Billing period end date (ISO 8601)
+        frequency:
+          type: string
+          enum: [per_ride, daily, weekly, monthly]
+          description: Invoice frequency
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceLineItem'
+          description: Array of invoice line items
+        subtotal:
+          type: integer
+          minimum: 0
+          description: Subtotal amount in USD cents (sum of line items)
+          example: 50000
+        paymentsApplied:
+          type: integer
+          minimum: 0
+          description: Payments applied in USD cents
+          example: 20000
+        outstandingAmount:
+          type: integer
+          description: Outstanding amount in USD cents (subtotal - payments)
+          example: 30000
+        status:
+          type: string
+          enum: [draft, issued, paid, overdue, cancelled]
+          description: Invoice status
+        notes:
+          type: string
+          nullable: true
+          maxLength: 1000
+          description: Invoice notes (editable metadata)
+        internalReference:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Internal reference number (editable metadata)
+        billingContactName:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Billing contact name (editable metadata)
+        billingContactEmail:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 200
+          description: Billing contact email (editable metadata)
+        generatedBy:
+          type: string
+          description: System or user ID that generated the invoice
+          example: "system"
+        createdAt:
+          type: string
+          format: date-time
+          description: Invoice creation timestamp (ISO 8601)
+        lastMetadataUpdate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last metadata update timestamp (ISO 8601)
+
+    InvoiceLineItem:
+      type: object
+      required:
+        - id
+        - rideId
+        - serviceDate
+        - fare
+        - description
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Line item ID
+        rideId:
+          type: string
+          format: uuid
+          description: Ride ID
+        serviceDate:
+          type: string
+          format: date
+          description: Service date (ISO 8601)
+        fare:
+          type: integer
+          minimum: 0
+          description: Fare amount in USD cents
+          example: 2500
+        description:
+          type: string
+          description: Line item description
+          example: "Ride from Hospital A to Clinic B"
+
+    InvoiceMetadataUpdate:
+      type: object
+      properties:
+        notes:
+          type: string
+          nullable: true
+          maxLength: 1000
+          description: Invoice notes
+        internalReference:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: Internal reference number
+        billingContactName:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: Billing contact name
+        billingContactEmail:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 200
+          description: Billing contact email
+
+    InvoiceListResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+        - page
+        - pageSize
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        totalCount:
+          type: integer
+          description: Total number of invoices matching filters
+        page:
+          type: integer
+          description: Current page number (1-indexed)
+        pageSize:
+          type: integer
+          description: Items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+
+    ApiError:
+      type: object
+      required:
+        - statusCode
+        - message
+        - errorCode
+        - timestamp
+        - correlationId
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+        message:
+          type: string
+          description: User-friendly error message
+        errorCode:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp (ISO 8601)
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Forbidden - user does not have permission to access this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Not found - requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
